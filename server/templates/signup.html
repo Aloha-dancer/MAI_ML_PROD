@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Python Flask Bucket List App</title>
+    <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="http://code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <link href="http://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="http://getbootstrap.com/examples/jumbotron-narrow/jumbotron-narrow.css" rel="stylesheet">
+    <link href="../static/signup.css" rel="stylesheet">
+   
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <nav>
+          <ul class="nav nav-pills pull-right">
+            <li role="presentation" ><a href="main">Home</a></li>
+            <li role="presentation"><a href="#">Sign In</a></li>
+            <li role="presentation" class="active"><a href="#">Sign Up</a></li>
+          </ul>
+        </nav>
+        <h3 class="text-muted">Python Flask App</h3>
+      </div>
+      <div class="jumbotron">
+        <h1>Bucket List App</h1>
+        <form class="form-signin">
+        <p>
+          <input type="name" name="inputName" id="inputName" class="form-control" placeholder="Name" required autofocus>
+          <label for="inputLastName" class="sr-only">Last Name</label>
+        </p>
+        <p>
+          <label for="inputName" class="sr-only">Name</label>
+          <input type="name" name="inputLastName" id="inputLastName" class="form-control" placeholder="Last Name" required autofocus>
+        </p>
+        <p>
+          <label for="inputLogin" class="sr-only">Login</label>
+          <input type="name" name="inputLogin" id="inputLogin" class="form-control" placeholder="Login" required autofocus>
+        </p>
+        <p>
+          <label for="inputEmail" class="sr-only">Email address</label>
+          <input type="email" name="inputEmail" id="inputEmail" class="form-control" placeholder="Email address" required autofocus>
+        </p>
+        <p>
+          <label for="inputPassword" class="sr-only">Password</label>
+          <input type="password" name="inputPassword" id="inputPassword" class="form-control" placeholder="Password" required>
+        </p>
+        
+        <button id="btnSignUp" class="btn btn-lg btn-primary btn-block" type="button">Sign up</button>
+      </form>
+      <div id="myDiv"></div>
+      </div>
+      
+      <footer class="footer">
+        <p>&copy; Company 2015</p>
+      </footer>
+    </div>
+    <script>
+        $(function() {
+            $('#btnSignUp').click(function() {
+                $.ajax({
+                    url: '/signUp',
+                    data: $('form').serialize(),
+                    type: 'POST',
+                    success: function(response) {
+                        console.log(response);
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            });
+        });
+        $.ajax({
+          url: '127.0.0.1:5000/showSignUp',
+         success: function(response) {
+         $('#myDiv').text(response);
+         setTimeout(function(){window.location = '127.0.0.1:5000/showSignIn'}, 5500);
+        }
+        });
+    </script>
+  </body>
+</html>
