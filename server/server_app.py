@@ -1,4 +1,5 @@
-from flask import Flask, render_template, json, request, jsonify
+from flask import Flask, render_template, request, jsonify
+import json
 import psycopg2
 from dotenv.main import load_dotenv
 import os
@@ -114,27 +115,66 @@ def singIn():
                  """ % (_user, _user)
                )
 
-@app.route('/addmsg', methods = ['POST'])
-def add_message():
-    json_content = request.get_json()
+
+def add_message(data):
+    json_content = data
 
     if len(json_content):
-
         conn = get_db_connection()
         cur = conn.cursor()
-
+        pred = 'spam' if int(json_content['Predicted_label']) else 'ham'
         cur.execute(
                 """
-                    INSERT INTO public.message (date, user_id, text, label)
-                    VALUES (now(), %s, %s, %s)
-                """
+                    INSERT INTO public.message (date, user_id, subject, content, text, label)
+                    VALUES (now(), 3, '%s', '%s', '%s', '%s')
+                """ % (json_content['Content'][0], 
+                       json_content['Content'][1],
+                       json_content['Content'][2],
+                       pred)
                )
 
         conn.commit()
         conn.close()
-        js = response.json()
+
+@app.route('/getcontent', methods = ['GET'])
+def get_content():
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute(
+                """
+                    SELECT email,
+                           content,
+                           subject,
+                           label
+                    FROM public.message msg
+                    JOIN public.user u ON
+                    msg.user_id = u.user_id
+                """
+                )
     
-    return json.dumps({'Status': f"{status_code}", "Content": f"{json_content}"}) if status_code else "{'1': '1'}"
+    conn.commit()
+    
+    data_js = []
+    for i in cur.fetchall():
+        data_js.append({'user_id': i[0],
+                        'message': i[1],
+                        'subject': i[2],
+                        'label': i[3]})
+    conn.close()
+    return json.dumps(data_js)
+
+@app.route('/predict', methods = ['POST'])
+def get_prediction():
+    data = request.get_json()
+    
+    response = requests.get(f'http://{os.environ["ML_HOST"]}:{os.environ["ML_PORT"]}/predict', params = json.loads(data))
+    if response.status_code == 200:
+        predicted_values = response.json()
+        add_message(predicted_values)
+        return json.dumps(response.json())
+    
+    return json.dumps({'1':'1'})
 
 @app.route('/test', methods = ['GET'])
 def test():
