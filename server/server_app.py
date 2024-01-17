@@ -4,13 +4,17 @@ from dotenv.main import load_dotenv
 import os
 import requests
 
+import subprocess as s
+
+app = Flask(__name__)
+
 load_dotenv()
 host = os.environ['PG_HOST']
 port = os.environ['PG_PORT']
 database = os.environ['PG_DB_NAME']
 user = os.environ['PG_DB_USER']
 pwd = os.environ['PG_PASSWORD']
-app = Flask(__name__)
+
 
 def get_db_connection():
     conn = psycopg2.connect(host = host,
@@ -80,7 +84,7 @@ def signUp():
                                           dklen = 128
                                          )
         cur.execute("""
-                       INSERT INTO user (first_name, email, login, password, last_name)
+                       INSERT INTO public.user (first_name, email, login, password, last_name)
                        VALUES (%s, %s, %s, %s, %s)
                     """ % (_name, _email, _login, salt + _hashed_pwd, _last_name))
         conn.commit()
@@ -114,10 +118,7 @@ def singIn():
 def add_message():
     json_content = request.get_json()
 
-    response = requests.get(f'http://{os.environ["ML_HOST"]}:{os.environ["ML_PORT"]}/test', json = json_content)
-    status_code = response.status_code
-    json_content = response.json()
-    if response.status_code == '200':
+    if len(json_content):
 
         conn = get_db_connection()
         cur = conn.cursor()
@@ -125,7 +126,7 @@ def add_message():
         cur.execute(
                 """
                     INSERT INTO public.message (date, user_id, text, label)
-                    VALUES (now(), 1, 'asfasf', 'label')
+                    VALUES (now(), %s, %s, %s)
                 """
                )
 
@@ -146,9 +147,11 @@ def test():
     status_row = cur.fetchone()
 
     conn.close()
-
     response_ml = requests.get(f'http://{os.environ["ML_HOST"]}:{os.environ["ML_PORT"]}/test')
-    response_email = requests.get(f'http://{os.environ["EMAIL_HOST"]}:{os.environ["EMAIL_PORT"]}/test')
+    try:
+        response_email = requests.get(f'http://{os.environ["EMAIL_HOST_1"]}:{os.environ["EMAIL_PORT"]}/test')
+    except requests.exceptions.ConnectionError:
+        response_email = requests.get(f'http://{os.environ["EMAIL_HOST_2"]}:{os.environ["EMAIL_PORT"]}/test')
 
     finale_json = jsonify({'ML': f'{response_ml.json()}',
                            'Email': f'{response_email.json()}',
@@ -157,6 +160,7 @@ def test():
                                                          status_row[2],
                                                          status_row[3])
                            })
+    return finale_json
 if __name__ == "__main__":
     app.run(host = '0.0.0.0',
             port = 5000)
