@@ -1,6 +1,7 @@
 # Выкачиваем из dockerhub образ с python версии 3.9
-FROM python:3.10
+FROM ubuntu:20.04
 # Устанавливаем рабочую директорию для проекта в контейнере
+RUN apt-get update && apt-get install -y python3-pip
 WORKDIR /server
 # Скачиваем/обновляем необходимые библиотеки для проекта 
 COPY ./server/requirements.txt /server

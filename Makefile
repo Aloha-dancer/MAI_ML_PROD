@@ -2,9 +2,6 @@ start-new: remove-dependencies
 	docker-compose build
 	docker-compose up
 
-start-detach:
-	docker-compose up -d
-
 start:
 	docker-compose build
 	docker-compose up
