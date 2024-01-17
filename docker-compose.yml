@@ -1,5 +1,6 @@
 version: "3.9"
 services:
+
 #Server app service
   flask_server:
     build: 
@@ -16,6 +17,7 @@ services:
     networks:
       - spam
     command: python3 server_app.py
+
 #DWH service
   postgres:
     image: postgres:14.8-alpine3.18
@@ -75,12 +77,20 @@ services:
           memory: 4G
     networks:
       - spam
+
   #Email server
   ml_service:
     build:
       dockerfile: ./mlapp/Dockerfile
     container_name: ml_service
     restart: on-failure
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
     volumes:
       - ./mlapp:/mlapp
     ports:
